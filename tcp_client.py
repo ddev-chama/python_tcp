@@ -1,47 +1,19 @@
 import socket
-import sys
-from _thread import *
- 
-HOST = '127.0.0.1'   # Symbolic name meaning all available interfaces
-PORT = 8888 # Arbitrary non-privileged port
- 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print ('Socket created')
- 
 
-     
-print ('Socket bind complete')
- 
-#Start listening on socket
-s.listen(10)
-print ('Socket now listening')
- 
-#Function for handling connections. This will be used to create threads
-def clientthread(conn):
-    #Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
-     
-    #infinite loop so that function do not terminate and thread do not end.
-    while True:
-         
-        #Receiving from client
-        data = conn.recv(1024)
-        reply = 'OK...' + data
-        if not data: 
-            break
-     
-        conn.sendall(reply)
-     
-    #came out of loop
-    conn.close()
- 
-#now keep talking with the client
-while 1:
-    #wait to accept a connection - blocking call
-    conn, addr = s.accept()
-    print ('Connected with ' + addr[0] + ':' + str(addr[1]))
-     
-    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-    start_new_thread(clientthread ,(conn,))
- 
-s.close()
+def Main():
+    host = '127.0.0.1'
+    port = 5000
+
+    s = socket.socket()
+    s.connect((host, port))
+
+    message = input("-> ")
+    while message != 'q':
+        s.send(message.encode('utf-8'))
+        data = s.recv(1024).decode('utf-8')
+        print('Received from server: ' + data)
+        message = input("-> ")
+    s.close()
+
+if __name__ == '__main__':
+    Main()
