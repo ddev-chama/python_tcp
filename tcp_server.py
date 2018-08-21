@@ -1,23 +1,29 @@
 import socket
+import time
 
-def Main():
-    host = '127.0.0.1'
-    port = 5000
+host = '127.0.0.1'
+port = 5000
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind((host,port))
+clients = []
 
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind((host,port))
+s.setblocking(0)
 
-    print("Server Started.")
-    while True:
+quitting = False
+print("Server Started.")
+while not quitting:
+    try:
         data, addr = s.recvfrom(1024)
-        data = data.decode('utf-8')
-        print("message From: " + str(addr))
-        print("from connected user: " + data)
-        data = data.upper()
-        print("sending: " + data)
-        s.sendto(data.encode('utf-8'), addr)
-    s.close()
-
-if __name__ == '__main__':
-    Main()
+        if 'Quit' in str(data):
+            s.sendto('Server is Down',clients)
+            quitting = True
+        if addr not in clients:
+            clients.append(addr)
+            
+        print(time.ctime(time.time()) + str(addr) + ": :" + str(data))
+        for client in clients:
+            s.sendto(data, client)
+    except:
+        pass
+s.close()

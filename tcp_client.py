@@ -1,22 +1,47 @@
 import socket
+import threading
+import time
+import sys 
 
-def Main():
-    host = '127.0.0.1'
-    port = 5001
+tLock = threading.Lock()
+shutdown = False
 
-    server = ('127.0.0.1',5000)
+def receving(name, sock):
+    while not shutdown:
+        try:
+            tLock.acquire()
+            while True:
+                data, addr = sock.recvfrom(1024)
+                print(str(data))
+        except:
+            pass
+        finally:
+            tLock.release()
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind((host, port))
+host = '127.0.0.1'
+port = 0
 
-    message = input("-> ")
-    while message != 'q':
-        s.sendto(message.encode('utf-8'), server)
-        data, addr = s.recvfrom(1024)
-        data = data.decode('utf-8')
-        print('Received from server: ' + data)
-        message = input("-> ")
-    s.close()
+server = ('127.0.0.1',5000)
 
-if __name__ == '__main__':
-    Main()
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind((host, port))
+s.setblocking(0)
+
+rT = threading.Thread(target=receving, args=("RecvThread",s))
+rT.start()
+
+alias = raw_input("Name: ")
+message = raw_input(alias + "-> ")
+
+while message != 'q':
+    if message != '':
+        s.sendto(alias + ": " + message, server)
+    tLock.acquire()
+    message = raw_input(alias + "-> ")
+    tLock.release()
+    #time.sleep(0.1)
+            
+
+shudown = True
+rT.join()
+s.close()     
